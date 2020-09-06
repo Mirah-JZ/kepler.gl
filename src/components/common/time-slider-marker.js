@@ -26,14 +26,14 @@ import {axisBottom} from 'd3-axis';
 import {createSelector} from 'reselect';
 import styled from 'styled-components';
 
-const MIN_TICK_WIDTH = 50;
+const MIN_TICK_WIDTH = 80;
 
 const TimeSliderContainer = styled.svg`
   pointer-events: none;
   position: absolute;
-
+  top: 0;
   .axis text {
-    font-size: 9px;
+    font-size: ${props => props.theme.axisFontSize};
     fill: ${props => props.theme.textColor};
   }
 
@@ -51,7 +51,7 @@ const TimeSliderContainer = styled.svg`
 
   .value {
     fill: ${props => props.theme.textColor};
-    font-size: 10px;
+    font-size: ${props => props.theme.axisFontSize};
 
     &.start {
       text-anchor: start;
@@ -104,7 +104,7 @@ function TimeSliderMarkerFactory() {
 
       const xAxis = axisBottom(scale)
         .ticks(ticks)
-        .tickSize(8)
+        .tickSize(0)
         .tickPadding(6);
 
       select(this.xAxis.current).call(xAxis);

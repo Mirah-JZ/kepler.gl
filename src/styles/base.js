@@ -318,6 +318,7 @@ export const geocoderInputHeight = 36;
 export const rangeBrushBgd = '#3A414C';
 export const histogramFillInRange = activeColor;
 export const histogramFillOutRange = sliderBarColor;
+export const axisFontSize = '10px';
 
 // Notification
 export const notificationColors = {
