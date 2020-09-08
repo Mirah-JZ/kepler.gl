@@ -21,7 +21,9 @@ const HistogramWrapper = styled.svg`
 `;
 function HistogramPlotFactory() {
   const HistogramPlot = ({width, height, margin, histogram, value, brushComponent}) => {
-    const domain = [histogram[0].x0, histogram[histogram.length - 1].x1];
+    const domain = useMemo(() => [histogram[0].x0, histogram[histogram.length - 1].x1], [
+      histogram
+    ]);
     const barWidth = width / histogram.length;
     const dataId = Object.keys(histogram[0]).filter(k => k !== 'x0' && k !== 'x1')[0];
     // use 1st for now
@@ -36,10 +38,11 @@ function HistogramPlotFactory() {
     );
 
     const y = useMemo(
-      () => scaleLinear()
-        .domain([0, max(histogram, getValue)])
-        .range([0, height]),
-      [histogram, width, getValue]
+      () =>
+        scaleLinear()
+          .domain([0, max(histogram, getValue)])
+          .range([0, height]),
+      [histogram, height, getValue]
     );
 
     return (
@@ -48,7 +51,6 @@ function HistogramPlotFactory() {
           {histogram.map(bar => {
             const inRange = bar.x1 > value[0] && bar.x0 <= value[1];
             const wRatio = inRange ? histogramStyle.highlightW : histogramStyle.unHighlightedW;
-
             return (
               <rect
                 className={classnames({'in-range': inRange})}

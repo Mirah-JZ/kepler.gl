@@ -18,86 +18,99 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import React, {useState, useMemo} from 'react';
+import React, {useState, useCallback} from 'react';
 import PropTypes from 'prop-types';
-
+import styled, {withTheme} from 'styled-components';
 import RangeBrushFactory from './range-brush';
 import HistogramPlotFactory from './histogram-plot';
 import LineChartFactory from './line-chart';
 
-const chartMargin = {top: 18, bottom: 0, left: 0, right: 0};
-const chartH = 62;
-const chartHLarge = 112;
-
-const containerH = 78;
-const containerHLarge = 130;
+const StyledRangePlot = styled.div`
+  margin-bottom: ${props => props.theme.sliderBarHeight}px;
+  display: flex;
+  position: 'relative';
+`;
 
 RangePlotFactory.deps = [RangeBrushFactory, HistogramPlotFactory, LineChartFactory];
 export default function RangePlotFactory(RangeBrush, HistogramPlot, LineChart) {
   const RangePlot = ({
-    onBrush, 
-    range, 
-    value, 
-    width, 
-    plotType, 
-    lineChart, 
+    onBrush,
+    range,
+    value,
+    width,
+    plotType,
+    lineChart,
     histogram,
     isEnlarged,
+    theme,
     ...chartProps
   }) => {
-
     const [brushing, setBrushing] = useState(false);
+    const [hoveredDP, onMouseMove] = useState(null);
+    const [enableChartHover, setEnableChartHover] = useState(false);
+    const height = isEnlarged ? theme.rangePlotHLarge : theme.rangePlotH;
+
+    const onBrushStart = useCallback(() => {
+      setBrushing(true);
+      onMouseMove(null);
+      setEnableChartHover(false);
+    }, [setBrushing, onMouseMove, setEnableChartHover]);
+
+    const onBrushEnd = useCallback(() => {
+      setBrushing(false);
+      setEnableChartHover(true);
+    }, [setBrushing, setEnableChartHover]);
+
+    const onMouseoverHandle = useCallback(() => {
+      onMouseMove(null);
+      setEnableChartHover(false);
+    }, [onMouseMove, setEnableChartHover]);
+
+    const onMouseoutHandle = useCallback(() => {
+      setEnableChartHover(true);
+    }, [setEnableChartHover]);
 
     const brushComponent = (
       <RangeBrush
         onBrush={onBrush}
-        onBrushStart={() => setBrushing(true)}
-        onBrushEnd={() => setBrushing(false)}
+        onBrushStart={onBrushStart}
+        onBrushEnd={onBrushEnd}
         range={range}
         value={value}
         width={width}
+        height={height}
+        onMouseoverHandle={onMouseoverHandle}
+        onMouseoutHandle={onMouseoutHandle}
         {...chartProps}
       />
     );
-    const containerHeight = isEnlarged ? containerHLarge : containerH;
+    const commonProps = {
+      width,
+      value,
+      height,
+      margin: isEnlarged ? theme.rangePlotMarginLarge : theme.rangePlotMargin,
+      brushComponent,
+      brushing,
+      isEnlarged,
+      enableChartHover,
+      onMouseMove,
+      hoveredDP,
+      ...chartProps
+    };
 
     return (
-      <div
+      <StyledRangePlot
         style={{
-          height: `${containerHeight}px`,
-          position: 'relative'
+          height: `${isEnlarged ? theme.rangePlotContainerHLarge : theme.rangePlotContainerH}px`
         }}
+        className="kg-range-slider__plot"
       >
         {plotType === 'lineChart' && lineChart ? (
-          <LineChart
-            // hoveredDP={hoveredDP}
-            width={width}
-            height={isEnlarged ? chartHLarge : chartH}
-            margin={chartMargin}
-            children={brushComponent}
-
-            lineChart={lineChart}
-            brushing={brushing}
-            isEnlarged={isEnlarged}
-            {...chartProps}
-
-            // onMouseMove={onMouseMove}
-            // yDomain={lineChart.yDomain}
-            // hintFormat={hintFormatter}
-            // data={lineChart.series}
-          />
+          <LineChart lineChart={lineChart} {...commonProps} />
         ) : (
-          <HistogramPlot
-            width={width}
-            height={isEnlarged ? chartHLarge : chartH}
-            value={value}
-            margin={chartMargin}
-            histogram={histogram}
-            brushComponent={brushComponent}
-            {...chartProps}
-          />
+          <HistogramPlot histogram={histogram} {...commonProps} />
         )}
-      </div>
+      </StyledRangePlot>
     );
   };
 
@@ -115,5 +128,5 @@ export default function RangePlotFactory(RangeBrush, HistogramPlot, LineChart) {
     onBlur: PropTypes.func,
     width: PropTypes.number.isRequired
   };
-  return RangePlot;
+  return withTheme(RangePlot);
 }

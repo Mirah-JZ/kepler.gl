@@ -27,6 +27,7 @@ import {createSelector} from 'reselect';
 import styled from 'styled-components';
 
 const MIN_TICK_WIDTH = 80;
+const HEIGHT = 30;
 
 const TimeSliderContainer = styled.svg`
   pointer-events: none;
@@ -62,8 +63,6 @@ const TimeSliderContainer = styled.svg`
     }
   }
 `;
-
-const height = 30;
 
 function TimeSliderMarkerFactory() {
   class TimeSliderMarker extends Component {
@@ -105,7 +104,7 @@ function TimeSliderMarkerFactory() {
       const xAxis = axisBottom(scale)
         .ticks(ticks)
         .tickSize(0)
-        .tickPadding(6);
+        .tickPadding(12);
 
       select(this.xAxis.current).call(xAxis);
     }
@@ -115,7 +114,7 @@ function TimeSliderMarkerFactory() {
         <TimeSliderContainer
           className="time-slider-marker"
           width={this.props.width}
-          height={height}
+          height={HEIGHT}
         >
           <g className="x axis" ref={this.xAxis} transform="translate(0, 0)" />
         </TimeSliderContainer>

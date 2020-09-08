@@ -18,16 +18,38 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import React, {useState, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import moment from 'moment';
-import {LineSeries, XYPlot, CustomSVGSeries, Hint, MarkSeries} from 'react-vis';
+import {
+  HorizontalGridLines,
+  LineSeries,
+  XYPlot,
+  CustomSVGSeries,
+  Hint,
+  YAxis,
+  MarkSeries
+} from 'react-vis';
 import styled from 'styled-components';
 import {getTimeWidgetHintFormatter} from 'utils/filter-utils';
 
 const LineChartWrapper = styled.div`
-  .rv-xy-plot__inner path {
-    fill: none;
-    stroke-width: 1.5;
+  .rv-xy-plot {
+    /* important for rendering hint */
+    position: relative;
+  }
+  .rv-xy-plot__inner {
+    /* important to show axis */
+    overflow: visible;
+  }
+
+  .rv-xy-plot__grid-lines__line {
+    stroke: ${props => props.theme.histogramFillOutRange};
+    stroke-dasharray: 1px 4px;
+  }
+
+  .rv-xy-plot__axis__tick__text {
+    font-size: 9px;
+    fill: ${props => props.theme.textColor};
   }
 `;
 const StyledHint = styled.div`
@@ -47,46 +69,52 @@ const HintContent = ({x, y, format}) => (
     <div className="row">{y}</div>
   </StyledHint>
 );
+const MARGIN = {top: 0, bottom: 0, left: 0, right: 0};
 function LineChartFactory() {
   const LineChart = ({
-    width,
-    height,
-    // yDomain,
-    // hintFormat,
-    // hoveredDP,
-    margin,
-    lineChart,
+    brushComponent,
     brushing,
-    isEnlarged,
-    isRanged,
     color,
-    // data,
-    // onMouseMove,
-    children
+    enableChartHover,
+    height,
+    hoveredDP,
+    isEnlarged,
+    lineChart,
+    margin,
+    onMouseMove,
+    width
   }) => {
-    const {xDomain, series} = lineChart;
-    const [hoveredDP, onMouseMove] = useState(null);
-    const hintFormatter = useMemo(
-      () => {
-        return getTimeWidgetHintFormatter(xDomain);
-      },
-      [xDomain]
-    );
+    const {xDomain, series, yDomain} = lineChart;
+    const hintFormatter = useMemo(() => {
+      return getTimeWidgetHintFormatter(xDomain);
+    }, [xDomain]);
 
-    const brushData = useMemo(
-      () => {
-        return [{x: series[0].x, y: yDomain[1], customComponent: () => children}];
-      },
-      [series, yDomain]
-    );
-
+    const brushData = useMemo(() => {
+      return [{x: series[0].x, y: yDomain[1], customComponent: () => brushComponent}];
+    }, [series, yDomain, brushComponent]);
     return (
-      <LineChartWrapper>
-        <XYPlot width={width} height={height} margin={{...margin, bottom: 12}}>
-          <LineSeries strokeWidth={2} color={color} data={series} onNearestX={onMouseMove} />
+      <LineChartWrapper style={{marginTop: `${margin.top}px`}}>
+        <XYPlot
+          xType="time"
+          width={width}
+          height={height}
+          margin={MARGIN}
+          onMouseLeave={() => {
+            onMouseMove(null);
+          }}
+        >
+          <HorizontalGridLines tickTotal={3} />
+          <LineSeries
+            style={{fill: 'none'}}
+            strokeWidth={2}
+            color={color}
+            data={series}
+            onNearestX={enableChartHover ? onMouseMove : null}
+          />
           <MarkSeries data={hoveredDP ? [hoveredDP] : []} color={color} size={3} />
           <CustomSVGSeries data={brushData} />
-          {hoveredDP ? (
+          {isEnlarged && <YAxis tickTotal={3} />}
+          {hoveredDP && enableChartHover && !brushing ? (
             <Hint value={hoveredDP}>
               <HintContent {...hoveredDP} format={val => moment.utc(val).format(hintFormatter)} />
             </Hint>

@@ -40,7 +40,8 @@ const StyledDropdownSelect = styled.div.attrs({
 })`
   ${props => (props.inputTheme === 'secondary' ? props.theme.secondaryInput : props.theme.input)};
 
-  height: ${props => props.size === 'small' ? props.theme.inputBoxHeightSmall : props.theme.inputBoxHeight};
+  height: ${props =>
+    props.size === 'small' ? props.theme.inputBoxHeightSmall : props.theme.inputBoxHeight};
 
   .list__item__anchor {
     ${props => props.theme.dropdownListAnchor};
